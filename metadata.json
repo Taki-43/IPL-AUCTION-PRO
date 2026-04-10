@@ -1,0 +1,5 @@
+{
+  "name": "IPL Auction Pro",
+  "description": "A realistic IPL auction simulation for playing with friends. Features real-time bidding, private rooms, and current player stats.",
+  "requestFramePermissions": []
+}

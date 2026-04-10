@@ -1,0 +1,86 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "avicreations.3d@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email']) &&
+             data.uid is string &&
+             data.email is string;
+    }
+
+    function isValidRoom(data) {
+      return data.keys().hasAll(['code', 'hostId', 'status', 'maxTeams', 'baseBudget']) &&
+             data.code is string &&
+             data.hostId is string &&
+             data.status in ['lobby', 'active', 'paused', 'finished'] &&
+             data.maxTeams is number && data.maxTeams <= 10 &&
+             data.baseBudget is number &&
+             (!('playerOrder' in data) || data.playerOrder is list);
+    }
+
+    function isValidTeam(data) {
+      return data.keys().hasAll(['userId', 'budgetRemaining']) &&
+             data.userId is string &&
+             data.budgetRemaining is number;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isOwner(userId) && isValidUser(request.resource.data);
+    }
+
+    match /rooms/{roomId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidRoom(request.resource.data) && request.resource.data.hostId == request.auth.uid;
+      
+      // Host can update anything
+      // Participants can only update bidding fields if the room is active
+      allow update: if isAuthenticated() && (
+        (resource.data.hostId == request.auth.uid && isValidRoom(request.resource.data)) ||
+        (
+          resource.data.status == 'active' &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['currentBid', 'currentBidderId', 'bidStartTime']) &&
+          request.resource.data.currentBid > resource.data.currentBid &&
+          request.resource.data.currentBidderId == request.auth.uid
+        )
+      );
+
+      match /teams/{userId} {
+        allow read: if isAuthenticated();
+        allow create, update: if isOwner(userId) && isValidTeam(request.resource.data);
+      }
+
+      match /players/{playerId} {
+        allow read: if isAuthenticated();
+        // Only host can manage player status in the room
+        allow write: if isAuthenticated() && get(/databases/$(database)/documents/rooms/$(roomId)).data.hostId == request.auth.uid;
+      }
+    }
+
+    match /players/{playerId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+  }
+}

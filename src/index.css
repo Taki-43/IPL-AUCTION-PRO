@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+@layer utilities {
+  .bg-grid-pattern {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  
+  .glass-panel {
+    @apply bg-zinc-900/50 backdrop-blur-xl border border-white/5;
+  }
+}

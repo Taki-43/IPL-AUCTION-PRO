@@ -1,0 +1,86 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "photoURL": { "type": "string" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Room": {
+      "title": "Room",
+      "description": "Auction room settings and state",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "code": { "type": "string" },
+        "hostId": { "type": "string" },
+        "name": { "type": "string" },
+        "status": { "type": "string", "enum": ["lobby", "active", "paused", "finished"] },
+        "maxTeams": { "type": "number" },
+        "baseBudget": { "type": "number" },
+        "currentPlayerId": { "type": "string" },
+        "currentBid": { "type": "number" },
+        "currentBidderId": { "type": "string" },
+        "bidStartTime": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "playerOrder": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["code", "hostId", "status", "maxTeams", "baseBudget"]
+    },
+    "Team": {
+      "title": "Team",
+      "description": "A team in an auction room",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "teamName": { "type": "string" },
+        "budgetRemaining": { "type": "number" },
+        "players": { "type": "array" }
+      },
+      "required": ["userId", "budgetRemaining"]
+    },
+    "Player": {
+      "title": "Player",
+      "description": "IPL Player data",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "nationality": { "type": "string" },
+        "basePrice": { "type": "number" },
+        "stats": { "type": "object" },
+        "form": { "type": "string" },
+        "status": { "type": "string", "enum": ["unsold", "sold", "available"] },
+        "soldTo": { "type": "string" },
+        "soldPrice": { "type": "number" }
+      },
+      "required": ["name", "role", "basePrice"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/rooms/{roomId}": {
+      "schema": "Room",
+      "description": "Auction rooms"
+    },
+    "/rooms/{roomId}/teams/{userId}": {
+      "schema": "Team",
+      "description": "Teams within a room"
+    },
+    "/rooms/{roomId}/players/{playerId}": {
+      "schema": "Player",
+      "description": "Players state within a specific room auction"
+    }
+  }
+}
