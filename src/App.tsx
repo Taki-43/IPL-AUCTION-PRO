@@ -9,6 +9,7 @@ import confetti from 'canvas-confetti';
 import { IPL_PLAYERS, PlayerData } from './data/players';
 import { cn, formatCurrency } from './lib/utils';
 import { fetchLatestPlayerStats } from './services/geminiService';
+import { Analytics } from '@vercel/analytics/react';
 
 // --- Types ---
 type RoomStatus = 'lobby' | 'active' | 'paused' | 'finished';
@@ -609,6 +610,7 @@ export default function App() {
           Built by <span className="text-white">Taki.tech</span>
         </p>
       </footer>
+      <Analytics />
     </div>
   );
 }
